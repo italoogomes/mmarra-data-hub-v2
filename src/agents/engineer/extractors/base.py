@@ -48,6 +48,11 @@ class BaseExtractor(ABC):
         self._authenticated = False
 
     @property
+    def nome(self) -> str:
+        """Alias para get_entity_name() (compatibilidade)."""
+        return self.get_entity_name()
+
+    @property
     def client(self) -> SankhyaClient:
         """Retorna cliente Sankhya, criando se necessário."""
         if self._client is None:
@@ -227,3 +232,50 @@ class BaseExtractor(ABC):
             "columns": self.get_columns(),
             "source": "sankhya_api"
         }
+
+    # ========================================
+    # Métodos de Compatibilidade
+    # ========================================
+
+    def extrair(self, **kwargs) -> pd.DataFrame:
+        """Alias para extract() (compatibilidade com scripts antigos)."""
+        return self.extract(**kwargs)
+
+    def salvar_parquet(
+        self,
+        df: pd.DataFrame,
+        sufixo: str = "",
+        diretorio: Optional[str] = None
+    ):
+        """
+        Salva DataFrame como Parquet.
+
+        Args:
+            df: DataFrame a salvar
+            sufixo: Sufixo para o nome do arquivo (opcional)
+            diretorio: Diretório destino (default: src/data/raw/{entity}/)
+
+        Returns:
+            Path do arquivo salvo
+        """
+        from pathlib import Path
+        from src.config import RAW_DATA_DIR
+
+        entity = self.get_entity_name()
+
+        if diretorio:
+            pasta = Path(diretorio)
+        else:
+            pasta = RAW_DATA_DIR / entity
+
+        pasta.mkdir(parents=True, exist_ok=True)
+
+        if sufixo:
+            arquivo = pasta / f"{entity}_{sufixo}.parquet"
+        else:
+            arquivo = pasta / f"{entity}.parquet"
+
+        df.to_parquet(arquivo, index=False)
+        logger.info(f"[{entity}] Salvo em: {arquivo}")
+
+        return arquivo

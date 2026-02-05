@@ -19,7 +19,7 @@ import logging
 from typing import Optional, Dict, Any
 
 from ..base import BaseAgent
-from ..llm.tools import forecast_demand, get_kpis
+from ..llm.tools import forecast_demand, get_kpis, detect_anomalies, generate_anomaly_alerts
 from ..shared.rag import DocumentRetriever, search_documentation
 
 logger = logging.getLogger(__name__)
@@ -61,6 +61,17 @@ FERRAMENTAS DISPONÍVEIS:
    - modulo: "vendas", "compras" ou "estoque"
    - periodo: "mes_atual", "mes_anterior" ou "ano"
 
+4. detect_anomalies(data_type, top_n, min_severity) - DETECTA ANOMALIAS
+   - Use quando perguntarem sobre vendas estranhas, valores anormais, transações suspeitas
+   - data_type: "vendas" ou "estoque"
+   - top_n: número de anomalias para mostrar (padrão 10)
+   - min_severity: "baixa", "media", "alta" ou "critica"
+
+5. generate_anomaly_alerts(min_severity, format_type) - GERA ALERTAS
+   - Use quando pedirem alertas ou notificações de problemas
+   - min_severity: severidade mínima para alertar
+   - format_type: "text", "markdown" ou "html"
+
 REGRAS:
 - Sempre responda em português brasileiro
 - Use search_documentation PRIMEIRO para perguntas técnicas
@@ -97,7 +108,13 @@ class OrchestratorAgent(BaseAgent):
             temperature: Temperatura do modelo
         """
         # Configurar tools (RAG primeiro para priorizar busca na documentação)
-        tools = [search_documentation, forecast_demand, get_kpis]
+        tools = [
+            search_documentation,
+            forecast_demand,
+            get_kpis,
+            detect_anomalies,
+            generate_anomaly_alerts
+        ]
 
         super().__init__(
             name="Orquestrador",
@@ -107,7 +124,7 @@ class OrchestratorAgent(BaseAgent):
             temperature=temperature
         )
 
-        logger.info("Orquestrador inicializado com RAG, previsão e KPIs")
+        logger.info("Orquestrador inicializado com RAG, previsão, KPIs e detecção de anomalias")
 
     def ask(self, question: str) -> str:
         """

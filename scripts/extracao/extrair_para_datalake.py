@@ -9,7 +9,9 @@ import os
 from pathlib import Path
 from datetime import datetime
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Adicionar diretório raiz do projeto ao path
+ROOT_DIR = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(ROOT_DIR))
 
 import logging
 import argparse

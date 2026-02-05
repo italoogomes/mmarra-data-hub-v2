@@ -102,6 +102,15 @@ class DocumentStore:
         
         # === POSTMAN (documentacao API) ===
         {"path": "postman", "glob": "*.md", "desc": "Documentacao Postman"},
+
+        # === SCRIPTS (para aprender como executar tarefas) ===
+        {"path": "scripts", "glob": "*.py", "desc": "Scripts principais"},
+        {"path": "scripts/extracao", "glob": "*.py", "desc": "Scripts de extracao ETL"},
+        {"path": "scripts/testes", "glob": "*.py", "desc": "Scripts de testes"},
+
+        # === RELATORIOS GERADOS ===
+        {"path": "output/reports", "glob": "*.csv", "desc": "Relatorios CSV gerados"},
+        {"path": "output/reports", "glob": "*.md", "desc": "Relatorios MD gerados"},
     ]
 
     def __init__(self, index_path: Optional[Path] = None):

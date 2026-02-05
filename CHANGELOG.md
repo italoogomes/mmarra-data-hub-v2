@@ -10,9 +10,81 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 ## [Não Lançado]
 
 ### 🔄 Em Desenvolvimento
-- Camada `processed/` com transformações avançadas
-- Mais modelos Prophet para outros produtos
-- Embeddings com HuggingFace (quando tiver internet)
+- Integração WhatsApp
+- API REST para consultas externas
+- Notificações automáticas
+
+---
+
+## [2.1.0] - 2026-02-05 📊 EXPANSÃO ML + DASHBOARD
+
+### 🎉 Marco Principal
+**Modelos Prophet Expandidos + Detecção de Anomalias + Dashboard Web**
+
+### ✅ Adicionado
+
+#### 1. Modelos Prophet Expandidos
+- 10 modelos treinados para TOP 10 produtos
+- Script: `scripts/treinar_multiplos_modelos.py`
+- Modelos salvos em `src/agents/scientist/models/demand/`
+
+#### 2. Detecção de Anomalias Integrada
+- Nova tool: `detect_anomalies` (Isolation Forest)
+- Nova tool: `generate_anomaly_alerts`
+- Script: `scripts/detectar_anomalias.py`
+- Integração com Agente LLM/Orquestrador
+
+#### 3. Dashboard Web (Streamlit)
+- `dashboard/app.py` - Dashboard interativo
+- KPIs: Faturamento, Pedidos, Ticket Médio, Clientes
+- Gráficos: Vendas diárias, Top Produtos, Curva ABC
+- Abas: Previsões Prophet, Anomalias
+- Script: `scripts/iniciar_dashboard.py`
+
+#### 4. Extração de Vendas Completa
+- `scripts/extracao/extrair_vendas_completo.py`
+- 175.620 registros extraídos
+- Correção do formato de data Sankhya (TO_CHAR)
+
+#### 5. RAG Expandido
+- Adicionado `scripts/` ao índice RAG
+- Adicionado `output/reports/` ao índice RAG
+- 1229 chunks indexados
+
+### 🔧 Corrigido
+- Formato de data Sankhya (DDMMYYYY → YYYY-MM-DD)
+- Imports de extractors (`src.extractors` → `src.agents.engineer.extractors`)
+- Métodos de compatibilidade no BaseExtractor (`extrair()`, `salvar_parquet()`)
+
+### 📊 Produtos com Modelos Prophet
+
+| Produto | Descrição | Previsão 30d | Tendência |
+|---------|-----------|--------------|-----------|
+| 263340 | DIPS INDICADOR PORCA | 469 un | baixa |
+| 306957 | PORCA RODA 22MM | 959 un | baixa |
+| 305273 | DIPS INDICADOR CH33 | 2479 un | alta |
+| 261301 | MOLA PATIM FREIO | 1691 un | baixa |
+| 32007 | TUBO NYLON TECALON | 1136 un | baixa |
+| 305277 | DIPS INDICADOR AMAR | 760 un | alta |
+| 166756 | TRAVA ROLETE PATIM | 614 un | baixa |
+| 32037 | INSERT TUBO 5/16 | 387 un | alta |
+| 32043 | INSERT TUBO 12mm | 467 un | estável |
+| 48352 | FLEXIVEL FREIO | 927 un | baixa |
+
+---
+
+## [2.0.0] - 2026-02-05 🚀 REORGANIZAÇÃO COMPLETA
+
+### 🎉 Marco Principal
+**Arquitetura de Agentes Autônomos + RAG Expandido**
+
+### ✅ Adicionado
+- Dados movidos de `src/data/` para `data/`
+- RAG expandido com mais fontes de conhecimento
+- Investigações documentadas em `docs/investigacoes/`
+- API Sankhya totalmente documentada
+- Queries organizadas por módulo
+- .gitignore otimizado
 
 ---
 
@@ -698,4 +770,4 @@ start relatorio_divergencias_v3.html
 
 ---
 
-**Última atualização:** 2026-02-03
+**Última atualização:** 2026-02-05
