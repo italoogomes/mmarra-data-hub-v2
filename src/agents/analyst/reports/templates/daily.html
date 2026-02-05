@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(26, 35, 126, 0.3);
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .header .meta {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .section h2 {
+            color: #1a237e;
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e8eaf6;
+        }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        .kpi-card {
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #3949ab;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .kpi-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a237e;
+            margin-bottom: 5px;
+        }
+        .kpi-card .label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9ff;
+            font-weight: 600;
+            color: #555;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        tr:hover {
+            background: #fafbff;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .trend-up {
+            color: #2e7d32;
+        }
+        .trend-down {
+            color: #c62828;
+        }
+        .footer {
+            text-align: center;
+            padding: 25px;
+            color: #999;
+            font-size: 12px;
+        }
+        @media (max-width: 768px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .kpi-card .value {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ title }}</h1>
+            <div class="meta">Gerado em: {{ generated_at }}</div>
+        </div>
+
+        {% if kpis.vendas %}
+        <div class="section">
+            <h2>Vendas</h2>
+            <div class="kpi-grid">
+                {% if kpis.vendas.faturamento_total %}
+                <div class="kpi-card">
+                    <div class="value">{{ kpis.vendas.faturamento_total.formatted }}</div>
+                    <div class="label">Faturamento Total</div>
+                </div>
+                {% endif %}
+                {% if kpis.vendas.ticket_medio %}
+                <div class="kpi-card">
+                    <div class="value">{{ kpis.vendas.ticket_medio.formatted }}</div>
+                    <div class="label">Ticket Medio</div>
+                </div>
+                {% endif %}
+                {% if kpis.vendas.qtd_pedidos %}
+                <div class="kpi-card">
+                    <div class="value">{{ kpis.vendas.qtd_pedidos.formatted }}</div>
+                    <div class="label">Pedidos</div>
+                </div>
+                {% endif %}
+                {% if kpis.vendas.taxa_desconto %}
+                <div class="kpi-card">
+                    <div class="value">{{ kpis.vendas.taxa_desconto.formatted }}</div>
+                    <div class="label">Taxa de Desconto</div>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if kpis.vendas.vendas_por_vendedor and kpis.vendas.vendas_por_vendedor.top %}
+            <h3 style="margin-top: 25px; color: #555; font-size: 16px;">Top Vendedores</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Vendedor</th>
+                        <th class="text-right">Faturamento</th>
+                        <th class="text-center">Pedidos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in kpis.vendas.vendas_por_vendedor.top[:5] %}
+                    <tr>
+                        <td>{{ v.cod_vendedor }}</td>
+                        <td class="text-right">{{ v.faturamento_formatted }}</td>
+                        <td class="text-center">{{ v.qtd_pedidos }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if kpis.compras %}
+        <div class="section">
+            <h2>Compras</h2>
+            <div class="kpi-grid">
+                {% if kpis.compras.volume_compras %}
+                <div class="kpi-card">
+                    <div class="value">{{ kpis.compras.volume_compras.formatted }}</div>
+                    <div class="label">Volume de Compras</div>
+                </div>
+                {% endif %}
+                {% if kpis.compras.qtd_pedidos %}
+                <div class="kpi-card">
+                    <div class="value">{{ kpis.compras.qtd_pedidos.formatted }}</div>
+                    <div class="label">Pedidos</div>
+                </div>
+                {% endif %}
+                {% if kpis.compras.taxa_conferencia_wms %}
+                <div class="kpi-card">
+                    <div class="value">{{ kpis.compras.taxa_conferencia_wms.formatted }}</div>
+                    <div class="label">Taxa Conferencia WMS</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if kpis.estoque %}
+        <div class="section">
+            <h2>Estoque</h2>
+            <div class="kpi-grid">
+                {% if kpis.estoque.estoque_total_unidades %}
+                <div class="kpi-card">
+                    <div class="value">{{ kpis.estoque.estoque_total_unidades.formatted }}</div>
+                    <div class="label">Total em Unidades</div>
+                </div>
+                {% endif %}
+                {% if kpis.estoque.estoque_total_valor %}
+                <div class="kpi-card">
+                    <div class="value">{{ kpis.estoque.estoque_total_valor.formatted }}</div>
+                    <div class="label">Valor em Estoque</div>
+                </div>
+                {% endif %}
+                {% if kpis.estoque.produtos_sem_estoque %}
+                <div class="kpi-card">
+                    <div class="value">{{ kpis.estoque.produtos_sem_estoque.formatted }}</div>
+                    <div class="label">Produtos sem Estoque</div>
+                </div>
+                {% endif %}
+                {% if kpis.estoque.produtos_com_estoque %}
+                <div class="kpi-card">
+                    <div class="value">{{ kpis.estoque.produtos_com_estoque.formatted }}</div>
+                    <div class="label">Produtos com Estoque</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="footer">
+            MMarra Data Hub - Agente Analista v1.0.0
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,133 @@
+# ===========================================
+# MMarra Data Hub - .gitignore
+# Versão 2.0 - Otimizado para IA
+# ===========================================
+
+# ============ CREDENCIAIS - NUNCA COMMITAR! ============
+.env
+*.env
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key
+*.p12
+
+# ============ PYTHON ============
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+.conda/
+
+# ============ DADOS (NÃO VERSIONAR) ============
+# Arquivos de dados são gerados dinamicamente
+*.parquet
+*.csv
+!docs/**/*.csv
+!examples/**/*.csv
+
+# Pasta de dados (fora do src agora)
+data/raw/
+data/processed/
+
+# Outputs gerados
+output/json/*.json
+output/reports/*.html
+output/divergencias/*.txt
+!output/**/.gitkeep
+
+# ============ MODELOS ML ============
+src/agents/scientist/models/**/*.pkl
+src/agents/scientist/models/**/*.joblib
+!src/agents/scientist/models/.gitkeep
+
+# ============ IDE / EDITORES ============
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-workspace
+*.sublime-project
+.spyderproject
+.spyproject
+
+# ============ JUPYTER ============
+.ipynb_checkpoints/
+*.ipynb
+
+# ============ LOGS ============
+*.log
+logs/
+*.log.*
+
+# ============ SISTEMA ============
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ============ TESTES ============
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# ============ DOCUMENTAÇÃO BUILD ============
+docs/_build/
+site/
+
+# ============ TEMPORÁRIOS ============
+*.tmp
+*.temp
+*.bak
+*.backup
+temp/
+tmp/
+atualizacao/
+
+# ============ POSTMAN (pode ter tokens) ============
+postman/*.json
+!postman/*.example.json
+!postman/LEIA-ME.md
+
+# ============ ARQUIVOS GRANDES ============
+# Resultados de investigação (podem ser regenerados)
+output/json/resultado_*.json
+output/json/mapeamento_*.json
+
+# ============ NODE (se usar frontend) ============
+node_modules/
+npm-debug.log
+yarn-error.log

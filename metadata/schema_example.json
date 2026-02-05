@@ -1,0 +1,329 @@
+{
+  "database": "sankhya_erp",
+  "version": "1.0.0",
+  "last_updated": "2026-01-30",
+  "description": "Schema completo do Sankhya ERP para treinamento de agentes LLM",
+
+  "modules": [
+    {
+      "name": "compras",
+      "description": "Módulo de compras e recebimento",
+      "tables": ["TGFCAB", "TGFITE", "TGFPAR", "TGFPRO", "TGWREC"]
+    },
+    {
+      "name": "vendas",
+      "description": "Módulo de vendas e faturamento",
+      "tables": ["TGFCAB", "TGFITE", "TGFPAR", "TGFVEN"]
+    },
+    {
+      "name": "estoque",
+      "description": "Controle de estoque e WMS",
+      "tables": ["TGFEST", "TGFRES", "TGFMOV", "TGWREC"]
+    }
+  ],
+
+  "tables": [
+    {
+      "name": "TGFCAB",
+      "description": "Cabeçalho de notas fiscais (compras e vendas)",
+      "module": "compras",
+      "type": "transactional",
+      "primary_key": ["NUNOTA"],
+
+      "columns": [
+        {
+          "name": "NUNOTA",
+          "type": "NUMBER",
+          "precision": 10,
+          "scale": 0,
+          "nullable": false,
+          "primary_key": true,
+          "description": "Número único da nota fiscal",
+          "example": 1173664,
+          "used_for": ["primary_key", "joins", "filters"]
+        },
+        {
+          "name": "NUMNOTA",
+          "type": "NUMBER",
+          "precision": 10,
+          "scale": 0,
+          "nullable": true,
+          "description": "Número da nota fiscal (visível ao usuário)",
+          "example": 12345,
+          "used_for": ["display", "search"]
+        },
+        {
+          "name": "DTNEG",
+          "type": "DATE",
+          "nullable": false,
+          "description": "Data da negociação",
+          "example": "2026-01-27",
+          "used_for": ["filters", "sorting", "aggregation"]
+        },
+        {
+          "name": "CODPARC",
+          "type": "NUMBER",
+          "precision": 10,
+          "scale": 0,
+          "nullable": false,
+          "foreign_key": {
+            "table": "TGFPAR",
+            "column": "CODPARC",
+            "description": "Parceiro (fornecedor ou cliente)"
+          },
+          "description": "Código do parceiro",
+          "example": 123,
+          "used_for": ["joins", "filters"]
+        },
+        {
+          "name": "VLRNOTA",
+          "type": "NUMBER",
+          "precision": 15,
+          "scale": 2,
+          "nullable": true,
+          "description": "Valor total da nota",
+          "example": 1500.50,
+          "used_for": ["aggregation", "calculations"]
+        },
+        {
+          "name": "TIPMOV",
+          "type": "CHAR",
+          "length": 1,
+          "nullable": false,
+          "description": "Tipo de movimento (C=Compra, V=Venda, D=Devolução)",
+          "example": "C",
+          "enum": ["C", "V", "D", "O"],
+          "used_for": ["filters", "business_rules"]
+        },
+        {
+          "name": "STATUSNOTA",
+          "type": "CHAR",
+          "length": 1,
+          "nullable": true,
+          "description": "Status da nota (A=Aberta, P=Pendente, L=Liberada)",
+          "example": "L",
+          "enum": ["A", "P", "L"],
+          "used_for": ["filters", "business_rules"]
+        }
+      ],
+
+      "relationships": {
+        "parents": [
+          {
+            "table": "TGFPAR",
+            "foreign_key": "CODPARC",
+            "type": "many_to_one",
+            "description": "Cada nota pertence a um parceiro"
+          },
+          {
+            "table": "TGFTOP",
+            "foreign_key": "CODTIPOPER",
+            "type": "many_to_one",
+            "description": "Cada nota tem um tipo de operação"
+          }
+        ],
+        "children": [
+          {
+            "table": "TGFITE",
+            "foreign_key": "NUNOTA",
+            "type": "one_to_many",
+            "description": "Cada nota tem vários itens"
+          },
+          {
+            "table": "VGWRECSITCAB",
+            "foreign_key": "NUNOTA",
+            "type": "one_to_one",
+            "description": "Situação WMS da nota"
+          }
+        ]
+      },
+
+      "indexes": [
+        {
+          "name": "PK_TGFCAB",
+          "columns": ["NUNOTA"],
+          "type": "primary_key",
+          "unique": true
+        },
+        {
+          "name": "IDX_TGFCAB_01",
+          "columns": ["CODPARC", "DTNEG"],
+          "type": "non_unique",
+          "description": "Busca por parceiro e data"
+        }
+      ],
+
+      "custom_fields": [
+        {
+          "name": "AD_CAMPO1",
+          "type": "VARCHAR2",
+          "length": 100,
+          "description": "Campo customizado 1",
+          "business_meaning": "Finalidade específica do negócio"
+        }
+      ],
+
+      "common_queries": [
+        {
+          "question": "Listar pedidos de compra por período",
+          "sql": "SELECT * FROM TGFCAB WHERE TIPMOV = 'C' AND DTNEG BETWEEN :data_inicio AND :data_fim",
+          "parameters": ["data_inicio", "data_fim"],
+          "filters": ["TIPMOV", "DTNEG"],
+          "returns": "multiple_rows"
+        },
+        {
+          "question": "Buscar nota específica",
+          "sql": "SELECT * FROM TGFCAB WHERE NUNOTA = :nunota",
+          "parameters": ["nunota"],
+          "filters": ["NUNOTA"],
+          "returns": "single_row"
+        },
+        {
+          "question": "Total de compras por fornecedor",
+          "sql": "SELECT CODPARC, SUM(VLRNOTA) AS TOTAL FROM TGFCAB WHERE TIPMOV = 'C' GROUP BY CODPARC",
+          "parameters": [],
+          "filters": ["TIPMOV"],
+          "aggregations": ["SUM", "GROUP BY"],
+          "returns": "aggregated_rows"
+        }
+      ],
+
+      "business_rules": [
+        {
+          "rule": "Notas de compra devem ter TIPMOV = 'C'",
+          "validation": "TIPMOV IN ('C', 'O', 'D')",
+          "severity": "error"
+        },
+        {
+          "rule": "VLRNOTA deve ser maior que zero",
+          "validation": "VLRNOTA > 0",
+          "severity": "warning"
+        }
+      ]
+    },
+
+    {
+      "name": "TGFITE",
+      "description": "Itens de notas fiscais",
+      "module": "compras",
+      "type": "transactional",
+      "primary_key": ["NUNOTA", "SEQUENCIA"],
+
+      "columns": [
+        {
+          "name": "NUNOTA",
+          "type": "NUMBER",
+          "precision": 10,
+          "nullable": false,
+          "primary_key": true,
+          "foreign_key": {
+            "table": "TGFCAB",
+            "column": "NUNOTA"
+          },
+          "description": "Número da nota (FK)",
+          "used_for": ["primary_key", "joins"]
+        },
+        {
+          "name": "SEQUENCIA",
+          "type": "NUMBER",
+          "precision": 5,
+          "nullable": false,
+          "primary_key": true,
+          "description": "Sequência do item",
+          "example": 1,
+          "used_for": ["primary_key", "sorting"]
+        },
+        {
+          "name": "CODPROD",
+          "type": "NUMBER",
+          "precision": 10,
+          "nullable": false,
+          "foreign_key": {
+            "table": "TGFPRO",
+            "column": "CODPROD"
+          },
+          "description": "Código do produto",
+          "used_for": ["joins", "filters"]
+        },
+        {
+          "name": "QTDNEG",
+          "type": "NUMBER",
+          "precision": 15,
+          "scale": 3,
+          "nullable": false,
+          "description": "Quantidade negociada",
+          "example": 10.5,
+          "used_for": ["calculations", "aggregation"]
+        },
+        {
+          "name": "VLRUNIT",
+          "type": "NUMBER",
+          "precision": 15,
+          "scale": 2,
+          "nullable": true,
+          "description": "Valor unitário",
+          "example": 150.00,
+          "used_for": ["calculations"]
+        }
+      ],
+
+      "relationships": {
+        "parents": [
+          {
+            "table": "TGFCAB",
+            "foreign_key": "NUNOTA",
+            "type": "many_to_one"
+          },
+          {
+            "table": "TGFPRO",
+            "foreign_key": "CODPROD",
+            "type": "many_to_one"
+          }
+        ]
+      }
+    }
+  ],
+
+  "relationships_graph": [
+    {
+      "from": "TGFCAB",
+      "to": "TGFPAR",
+      "type": "many_to_one",
+      "via": "CODPARC",
+      "cardinality": "N:1"
+    },
+    {
+      "from": "TGFCAB",
+      "to": "TGFITE",
+      "type": "one_to_many",
+      "via": "NUNOTA",
+      "cardinality": "1:N"
+    },
+    {
+      "from": "TGFITE",
+      "to": "TGFPRO",
+      "type": "many_to_one",
+      "via": "CODPROD",
+      "cardinality": "N:1"
+    }
+  ],
+
+  "llm_instructions": {
+    "general": "Use este schema para gerar queries SQL automaticamente baseado em perguntas em linguagem natural",
+    "join_rules": [
+      "Sempre use INNER JOIN quando ambas as tabelas têm dados obrigatórios",
+      "Use LEFT JOIN quando a tabela secundária pode não ter dados",
+      "Sempre inclua campos de filtro (DTNEG, TIPMOV, CODEMP) nas queries"
+    ],
+    "aggregation_rules": [
+      "Para valores monetários, sempre use SUM(VLRNOTA) ou SUM(VLRTOT)",
+      "Para contagens, use COUNT(DISTINCT NUNOTA) para notas únicas",
+      "Para datas, agrupe com TRUNC(DTNEG, 'MM') para mês"
+    ],
+    "performance_tips": [
+      "Sempre filtre por data (DTNEG) quando possível",
+      "Use índices: NUNOTA, CODPARC+DTNEG, CODPROD",
+      "Limite resultados com ROWNUM ou FETCH FIRST quando apropriado"
+    ]
+  }
+}
