@@ -1,7 +1,7 @@
 # 📊 Estado Atual - MMarra Data Hub
 
 **Versão:** v2.1.0
-**Última Atualização:** 2026-02-09 (Sessão 4)
+**Última Atualização:** 2026-02-09 (Sessão 5 - Continuação)
 **Histórico Completo:** Ver `CHANGELOG.md`
 
 ---
@@ -456,6 +456,133 @@ ORDER BY
 
 3. ⏳ **Documentar em queries/compras/**:
    - Salvar query final como `pendencias_completo_v2.sql`
+
+---
+
+## 📋 Sessão 5 - Continuação (2026-02-09): Fix Formatação de Relatórios
+
+### 🎯 Objetivo
+Corrigir problema onde relatórios SQL estavam sendo exibidos como texto contínuo (uma linha só) ao invés de tabela formatada.
+
+### 🐛 Problema Identificado
+
+**Sintoma:** Usuário reportou: "quando eu peço um relatorio ao inves dela me mandar o resultado em um planilha, ele monstra o resultado dos pedidos e dos itens tudo em uma linha so kkk"
+
+**Análise:**
+1. Python (`agent.py` linhas 688-713) **já estava criando tabela markdown perfeita**:
+   ```markdown
+   | PEDIDO | DATA | FORNECEDOR | VALOR |
+   |--------|------|------------|-------|
+   | 123456 | 01/02 | Empresa X | R$ 1.500 |
+   ```
+
+2. Mas o LLM (qwen3:8b) recebia essa tabela e ao tentar "reformatar", **destruía a estrutura**, juntando tudo em uma linha.
+
+### ✅ Solução Implementada
+
+#### 1. FORMATTER_PROMPT Simplificado (`agent.py` ~linha 115)
+
+**ANTES:**
+```python
+4. Monte uma tabela Markdown com os dados, usando nomes amigaveis nas colunas...
+```
+→ LLM tentava REESCREVER a tabela (problema!)
+
+**DEPOIS:**
+```python
+2. COPIE A TABELA MARKDOWN EXATAMENTE COMO ESTA ACIMA - NAO modifique, NAO reescreva, NAO mude a formatacao.
+3. IMPORTANTE: Mantenha TODAS as quebras de linha (\n) da tabela. Cada linha deve estar em uma linha separada.
+```
+→ LLM apenas COPIA a tabela (solução!)
+
+#### 2. System Prompt Reforçado (`agent.py` ~linha 729)
+
+**ANTES:**
+```python
+"Voce e um assistente de negocios. Sua UNICA tarefa e formatar os dados..."
+```
+
+**DEPOIS:**
+```python
+"Voce e um assistente de negocios. Sua UNICA tarefa e adicionar um resumo e insights aos dados.
+CRITICO: Preserve a tabela Markdown EXATAMENTE como fornecida, mantendo TODAS as quebras de linha (\\n)."
+```
+
+### 📝 Arquivos Modificados
+
+**data-hub (projeto LLM):**
+- `src/llm/agent.py`:
+  - FORMATTER_PROMPT (linha 115-141): Simplificado para preservar formatação
+  - System message (linha 729): Reforçado com instrução CRITICA sobre quebras de linha
+
+### 🔄 Fluxo Corrigido
+
+1. **Python cria tabela markdown perfeita** (linhas 688-713)
+2. **LLM adiciona apenas:**
+   - Resumo antes (1-2 linhas)
+   - Tabela COPIADA (sem modificar)
+   - Insights depois
+3. **Frontend renderiza** via `renderMarkdown()` (index.html linha 995)
+4. **Usuário vê tabela formatada** ✅
+
+### 🔑 Lição Aprendida
+
+**❌ Problema:** Dar muita "liberdade criativa" ao LLM para formatar dados estruturados pode quebrar a formatação.
+
+**✅ Solução:** Instrução **IMPERATIVA** e **CLARA**: "COPIE EXATAMENTE" + "NAO modifique" + "Mantenha quebras de linha".
+
+**Aplicável em:**
+- Tabelas markdown
+- Código formatado
+- JSON/YAML
+- Qualquer dado estruturado que precise preservar formatação exata
+
+### 📍 Status
+
+**Status:** ✅ CORRIGIDO - Aguardando teste do usuário
+
+**Teste:**
+1. Reiniciar servidor: `python start.py` (projeto data-hub)
+2. Pedir relatório: "Quantos pedidos de compra pendentes da marca X?"
+3. Verificar tabela formatada corretamente
+
+---
+
+## 🚀 ANÁLISE DE READINESS & PLANO BETA
+
+### Avaliação de Prontidão (Sessão 25)
+
+Após completar as correções acima, foi solicitada análise se o data-hub LLM está pronto para lançamento beta ao time de compras.
+
+**Resultado da Análise:** **74/100 pontos - NÃO PRONTO**
+
+**Gaps Críticos Identificados:**
+1. ❌ Falta exemplo SQL para pedidos **atrasados** (DTPREVENT < SYSDATE)
+2. ❌ Falta exemplo SQL para **histórico de compras por fornecedor**
+3. ❌ Falta exemplo SQL para **análise de performance** de fornecedor (% atrasos)
+4. ⚠️ Nenhum teste com usuários reais do time de compras ainda
+
+**Recomendação:** **AGUARDAR 1-2 semanas** para adicionar conhecimento faltante
+
+**Tempo estimado:** 8-12 horas de trabalho adicional
+
+**Plano completo:** Ver [data-hub/PLANO_BETA.md](C:\Users\italo.gomes\OneDrive - MMarra Distribuidora Automotiva\Documentos\data-hub\PLANO_BETA.md)
+
+**Meta:** Atingir 90/100 pontos antes do lançamento beta
+
+### Próximos Passos para Beta
+
+1. **Semana 1 (4-6h):** Desenvolver 3 exemplos SQL faltantes
+   - Exemplo 23: Pedidos atrasados
+   - Exemplo 24: Histórico fornecedor
+   - Exemplo 25: Performance fornecedor
+
+2. **Semana 2 (4-6h):** Testes e ajustes
+   - Sessão de testes com usuário real
+   - Criar arquivo avisos.md (limitações conhecidas)
+   - Validar acurácia 80%+
+
+3. **Lançamento Beta:** Após checklist completo
 
 ---
 
