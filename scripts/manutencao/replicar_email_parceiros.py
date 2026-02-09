@@ -11,7 +11,9 @@ import os
 import requests
 import time
 from pathlib import Path
+from datetime import datetime
 from dotenv import load_dotenv
+import pandas as pd
 
 # Carregar .env do mcp_sankhya
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
@@ -148,6 +150,30 @@ def buscar_parceiros() -> list:
     return todos
 
 
+def exportar_erros_excel(erros: list, filename: str = None):
+    """Exporta a lista de erros para um arquivo Excel"""
+    if not erros:
+        print("\nNenhum erro para exportar.")
+        return
+
+    if not filename:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"erros_replicacao_emails_{timestamp}.xlsx"
+
+    # Criar DataFrame
+    df = pd.DataFrame(erros)
+
+    # Salvar Excel
+    output_dir = ROOT_DIR / "output" / "divergencias"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    filepath = output_dir / filename
+
+    df.to_excel(filepath, index=False, sheet_name="Erros")
+
+    print(f"\n📊 Excel gerado: {filepath}")
+    return filepath
+
+
 def atualizar_emails(codparc: int, email: str) -> tuple:
     """Atualiza os 3 campos de email usando CRUDServiceProvider.saveRecord"""
 
@@ -181,41 +207,53 @@ def atualizar_emails(codparc: int, email: str) -> tuple:
         "Content-Type": "application/json"
     }
 
-    try:
-        response = requests.post(
-            f"{BASE_URL}?serviceName=CRUDServiceProvider.saveRecord&outputType=json",
-            headers=headers,
-            json=payload,
-            timeout=30
-        )
+    max_tentativas = 3
+    for tentativa in range(max_tentativas):
+        try:
+            response = requests.post(
+                f"{BASE_URL}?serviceName=CRUDServiceProvider.saveRecord&outputType=json",
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
 
-        # Token expirou - renovar e tentar de novo
-        if response.status_code == 401:
-            print(" (renovando token...)", end="")
-            if autenticar():
-                headers["Authorization"] = f"Bearer {ACCESS_TOKEN}"
-                response = requests.post(
-                    f"{BASE_URL}?serviceName=CRUDServiceProvider.saveRecord&outputType=json",
-                    headers=headers,
-                    json=payload,
-                    timeout=30
-                )
+            # Token expirou - renovar e tentar de novo
+            if response.status_code == 401:
+                print(" (renovando token...)", end="")
+                if autenticar():
+                    headers["Authorization"] = f"Bearer {ACCESS_TOKEN}"
+                    continue
+                else:
+                    return False, "Falha ao renovar token"
+
+            # Rate limit / Forbidden - aguardar e tentar novamente
+            if response.status_code == 403:
+                if tentativa < max_tentativas - 1:
+                    wait_time = (tentativa + 1) * 2  # 2s, 4s
+                    print(f" (403, aguardando {wait_time}s...)", end="")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    return False, f"HTTP 403 - Rate limit excedido"
+
+            result = response.json()
+            status = result.get("status", "0")
+
+            if status == "1":
+                entity = result.get("responseBody", {}).get("entities", {}).get("entity", {})
+                nome = entity.get("NOMEPARC", {}).get("$", "")
+                return True, nome
             else:
-                return False, "Falha ao renovar token"
+                msg = result.get("statusMessage") or result.get("message") or f"HTTP {response.status_code}"
+                return False, msg
 
-        result = response.json()
-        status = result.get("status", "0")
+        except Exception as e:
+            if tentativa < max_tentativas - 1:
+                time.sleep(1)
+                continue
+            return False, str(e)
 
-        if status == "1":
-            entity = result.get("responseBody", {}).get("entities", {}).get("entity", {})
-            nome = entity.get("NOMEPARC", {}).get("$", "")
-            return True, nome
-        else:
-            msg = result.get("statusMessage") or result.get("message") or f"HTTP {response.status_code}"
-            return False, msg
-
-    except Exception as e:
-        return False, str(e)
+    return False, "Falha apos 3 tentativas"
 
 
 def main():
@@ -266,9 +304,14 @@ def main():
             sucessos += 1
         else:
             print(f" ❌ {resultado}")
-            erros.append({"codparc": codparc, "erro": resultado})
+            erros.append({
+                "CODPARC": codparc,
+                "EMAIL_ORIGEM": email_raw,
+                "EMAIL_USADO": email,
+                "ERRO": resultado
+            })
 
-        time.sleep(0.2)
+        time.sleep(0.5)  # Delay para evitar rate limit
 
     # 3. Resumo
     print("\n" + "=" * 60)
@@ -279,9 +322,18 @@ def main():
     print(f"📊 Total: {len(parceiros)}")
 
     if erros:
-        print("\n--- ERROS ---")
-        for e in erros:
-            print(f"  - CODPARC {e['codparc']}: {e['erro']}")
+        print("\n--- PRIMEIROS 10 ERROS ---")
+        for e in erros[:10]:
+            print(f"  - CODPARC {e['CODPARC']}: {e['ERRO']}")
+
+        if len(erros) > 10:
+            print(f"  ... e mais {len(erros) - 10} erros")
+
+        # Exportar para Excel
+        print("\n")
+        exportar = input("Deseja exportar os erros para Excel? (s/n): ").strip().lower()
+        if exportar == 's':
+            exportar_erros_excel(erros)
 
 
 if __name__ == "__main__":

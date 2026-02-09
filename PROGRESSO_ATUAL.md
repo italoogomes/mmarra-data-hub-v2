@@ -1,7 +1,7 @@
 # 📊 Estado Atual - MMarra Data Hub
 
 **Versão:** v2.1.0
-**Última Atualização:** 2026-02-05
+**Última Atualização:** 2026-02-09 (Sessão 4)
 **Histórico Completo:** Ver `CHANGELOG.md`
 
 ---
@@ -179,6 +179,283 @@ python -m mcp_sankhya.server
 | Status WMS | `docs/de-para/sankhya/wms.md` |
 | Investigações | `docs/investigacoes/README.md` |
 | Bugs conhecidos | `docs/bugs/` |
+
+---
+
+## 📝 Sessão 4 (2026-02-09) - Query Pendência Compras + Transferência data-hub
+
+### 🎯 Objetivo
+Criar relatório de pendência de compras e transferir conhecimento para o projeto `data-hub` (LLM Ollama).
+
+### 🔍 Descobertas Críticas
+
+#### 1. Campos Corretos vs Documentação
+
+| Documentado (❌) | Real (✅) | Tabela | Como Descobrir |
+|---|---|---|---|
+| DTENTREGA | **DTPREVENT** | TGFCAB | `SELECT COLUMN_NAME FROM ALL_TAB_COLUMNS WHERE TABLE_NAME='TGFCAB' AND COLUMN_NAME LIKE '%PREV%'` |
+| CODCOMPRADOR | **CODUSUCOMPRADOR** | TGFCAB | `SELECT COLUMN_NAME FROM ALL_TAB_COLUMNS WHERE TABLE_NAME='TGFCAB' AND COLUMN_NAME LIKE '%COMPR%'` |
+| MARCA (texto) | **CODMARCA** → TGFMAR.CODIGO | TGFPRO | FK para TGFMAR |
+
+#### 2. TGFMAR - Estrutura Completa
+
+```sql
+SELECT COLUMN_NAME FROM ALL_TAB_COLUMNS
+WHERE TABLE_NAME = 'TGFMAR'
+ORDER BY COLUMN_NAME
+```
+
+**Colunas:**
+- `CODIGO` (PK)
+- `DESCRICAO` (nome da marca, ex: DONALDSON)
+- `AD_CODVEND` (FK → TGFVEN - comprador responsável)
+- `AD_CONSIDLISTAFORN` (S/N)
+- `AD_IDEXTERNO` (ID integração)
+
+**Caminho comprador:** `TGFPRO.CODMARCA → TGFMAR.CODIGO → TGFMAR.AD_CODVEND → TGFVEN.CODVEND`
+
+#### 3. CODTIPOPERs Específicos MMarra
+
+- **1301** - Compra Casada (Empenho - vinculado a venda)
+- **1313** - Entrega Futura (compra programada)
+
+**Uso:** `CODTIPOPER IN (1301, 1313)` > `TIPMOV='O'` (mais preciso)
+
+#### 4. TGFVAR - Agregação Obrigatória
+
+**Problema:** Query retornava 16 linhas para pedido com 13 itens (atendimentos parciais multiplicavam).
+
+**Solução:** Agregar ANTES do JOIN:
+
+```sql
+LEFT JOIN (
+    SELECT V.NUNOTAORIG, V.SEQUENCIAORIG,
+           SUM(V.QTDATENDIDA) AS TOTAL_ATENDIDO
+    FROM TGFVAR V
+    JOIN TGFCAB C ON C.NUNOTA = V.NUNOTA
+    WHERE C.STATUSNOTA <> 'C'
+    GROUP BY V.NUNOTAORIG, V.SEQUENCIAORIG
+) V_AGG ...
+```
+
+### 📋 Query Final - Pendência de Compras
+
+Arquivo: `queries/compras/pendencias_completo.sql` (a criar)
+
+Características:
+- Nível ITEM (porque filtra marca)
+- TGFVAR agregado (pendência real)
+- Comprador via TGFMAR.AD_CODVEND
+- Valores corretos (ITE.VLRTOT)
+- CODTIPOPER IN (1301, 1313)
+- Ordenação por STATUS_ENTREGA (atrasados primeiro)
+
+### 🔄 Transferência para data-hub
+
+**3 arquivos atualizados no projeto LLM:**
+
+1. `knowledge/glossario/sinonimos.md` (+15 linhas)
+   - Seção "TOPs de Compra MMarra (CODTIPOPER)"
+   - Regra: quando usar CODTIPOPER vs TIPMOV
+
+2. `knowledge/sankhya/exemplos_sql.md` (+32 linhas)
+   - Exemplo 22: Query completa pendência
+   - Responde 5 perguntas simultaneamente
+
+3. `knowledge/sankhya/tabelas/TGFCAB.md`
+   - ✅ Verificado: CODUSUCOMPRADOR já documentado
+
+**Sessão 24 documentada** no `data-hub/PROGRESSO.md`
+
+### ✅ Próximos Passos
+
+1. [ ] Atualizar `docs/de-para/sankhya/compras.md` com CODUSUCOMPRADOR
+2. [ ] Criar `docs/de-para/sankhya/tgfmar.md`
+3. [ ] Salvar query em `queries/compras/pendencias_completo.sql`
+4. [ ] Testar LLM data-hub com melhorias (qwen3:8b)
+5. [ ] Transferir futuras descobertas entre projetos
+
+### 📝 Aprendizados
+
+✅ Agregar TGFVAR sempre (evita multiplicação)
+✅ ALL_TAB_COLUMNS quando doc estiver errada
+✅ Projetos sincronizados (mmarra-data-hub-v2 descobre → data-hub treina)
+✅ CODTIPOPER > TIPMOV (mais específico)
+✅ Comprador via marca (TGFPRO → TGFMAR → TGFVEN)
+
+---
+
+## 📋 Sessão 5 (2026-02-09): Servidor Data Hub, Logo e Descoberta ITE.PENDENTE
+
+### 🎯 Objetivo
+- Acessar servidor data-hub (LLM) para testar conhecimento transferido
+- Ajustar logo com fundo transparente
+- Revisar queries de pendência e identificar problema com itens cancelados
+
+### 🔍 Descobertas Críticas
+
+#### 1. Servidor Data Hub na Porta Errada
+**Problema:** Usuário tentou acessar `localhost:8080` mas servidor configurado para porta 8000.
+
+**Solução:** Alterado `start.py` de `PORT = 8000` para `PORT = 8080`.
+
+#### 2. Logo com Fundo Preto
+**Problema:** Logo PNG com fundo preto no base64 do HTML.
+
+**Solução:**
+- Criado pasta `src/api/static/images/`
+- Logo salva como `logo.png` (fundo transparente)
+- HTML atualizado para `src="imagens/logo.png"` (3 locais)
+- CSS ajustado: `background: white`, `border-radius`, `padding`
+
+#### 3. NUNOTA vs NUMNOTA (Campo Pedido)
+**Problema:** Query mostrando `NUNOTA` (ID interno 1185467) ao invés de `NUMNOTA` (número visível 168).
+
+**Correção:**
+```sql
+-- ❌ ERRADO:
+CAB.NUNOTA AS PEDIDO
+
+-- ✅ CORRETO:
+CAB.NUMNOTA AS PEDIDO
+```
+
+**Diferença:**
+- `NUNOTA` = Chave primária (ID único interno)
+- `NUMNOTA` = Número do pedido (visível ao usuário)
+
+#### 4. 🔥 Descoberta CRÍTICA: ITE.PENDENTE = 'S'
+
+**Problema Identificado:**
+Usuário: "Quando eu corto um item do pedido e marco como não pendente, ele continua aparecendo na consulta. Ele nunca vai sumir porque nunca vai ser entregue!"
+
+**Causa Raiz:**
+Query calculava `QTD_PENDENTE = QTDNEG - TOTAL_ATENDIDO`. Se item cancelado/cortado:
+- Nunca será entregue (`TOTAL_ATENDIDO` sempre 0)
+- `QTD_PENDENTE` sempre > 0
+- Aparece eternamente na consulta ❌
+
+**Solução:**
+```sql
+WHERE ITE.PENDENTE = 'S'  -- CRÍTICO!
+```
+
+**Comportamento:**
+- Quando usuário cancela/corta item → Sankhya marca `ITE.PENDENTE = 'N'`
+- Query filtra por `ITE.PENDENTE = 'S'` → Itens cancelados não aparecem ✅
+
+**Diferença entre campos:**
+- `CAB.PENDENTE` = Pedido tem itens pendentes (nível cabeçalho)
+- `ITE.PENDENTE` = Item específico está pendente (nível item)
+
+### 📝 Arquivos Atualizados
+
+#### mmarra-data-hub-v2 (este projeto)
+- `PROGRESSO_ATUAL.md` - Documentação desta sessão
+
+#### data-hub (projeto LLM)
+- `start.py` - Porta 8080
+- `src/api/static/index.html` - Logo externa + CSS
+- `src/api/static/images/logo.png` - Logo nova (criada pelo usuário)
+- `knowledge/sankhya/exemplos_sql.md` - 3 exemplos atualizados + nova regra
+
+**Exemplos SQL Corrigidos:**
+1. Exemplo 19 - Previsão entrega por marca (`+ ITE.PENDENTE = 'S'`)
+2. Exemplo 20 - Itens pendentes por pedido (`+ I.PENDENTE = 'S'`)
+3. Exemplo 22 - Pendentes por marca MMarra (`+ ITE.PENDENTE = 'S'`)
+
+**Nova Regra Crítica Adicionada:**
+Seção "ITE.PENDENTE para itens cancelados/cortados" explicando:
+- Quando usar
+- Por que usar
+- O que acontece se não usar
+
+### 🎯 Query Final de Pendência (Completa e Corrigida)
+
+```sql
+SELECT
+    CAB.NUNOTA AS NUNOTA_PEDIDO,
+    CAB.NUMNOTA AS PEDIDO,             -- ✅ Corrigido (era NUNOTA)
+    CAB.DTNEG AS DT_PEDIDO,
+    CAB.DTPREVENT AS PREVISAO_ENTREGA,
+    CAB.APROVADO AS CONFIRMADO,
+    PAR.NOMEPARC AS FORNECEDOR,
+    VEN.APELIDO AS COMPRADOR,
+    PRO.CODPROD,
+    PRO.REFERENCIA,
+    PRO.DESCRPROD AS PRODUTO,
+    MAR.DESCRICAO AS MARCA,
+    ITE.CODVOL AS UNIDADE,
+    ITE.QTDNEG AS QTD_PEDIDA,
+    NVL(V_AGG.TOTAL_ATENDIDO, 0) AS QTD_ATENDIDA,
+    (ITE.QTDNEG - NVL(V_AGG.TOTAL_ATENDIDO, 0)) AS QTD_PENDENTE,
+    ITE.VLRUNIT AS VLR_UNITARIO,
+    ITE.VLRTOT AS VLR_TOTAL_PEDIDO,
+    ROUND((ITE.QTDNEG - NVL(V_AGG.TOTAL_ATENDIDO, 0)) * ITE.VLRUNIT, 2) AS VLR_TOTAL_PENDENTE,
+    TRUNC(SYSDATE) - TRUNC(CAB.DTNEG) AS DIAS_ABERTO,
+    CASE
+        WHEN CAB.DTPREVENT IS NULL THEN 'SEM PREVISÃO'
+        WHEN CAB.DTPREVENT < SYSDATE THEN 'ATRASADO'
+        WHEN CAB.DTPREVENT < SYSDATE + 7 THEN 'PRÓXIMO'
+        ELSE 'NO PRAZO'
+    END AS STATUS_ENTREGA
+FROM TGFITE ITE
+JOIN TGFCAB CAB ON CAB.NUNOTA = ITE.NUNOTA
+JOIN TGFPRO PRO ON PRO.CODPROD = ITE.CODPROD
+LEFT JOIN TGFPAR PAR ON PAR.CODPARC = CAB.CODPARC
+LEFT JOIN TGFMAR MAR ON MAR.CODIGO = PRO.CODMARCA
+LEFT JOIN TGFVEN VEN ON VEN.CODVEND = MAR.AD_CODVEND
+LEFT JOIN (
+    SELECT V.NUNOTAORIG, V.SEQUENCIAORIG,
+           SUM(V.QTDATENDIDA) AS TOTAL_ATENDIDO
+    FROM TGFVAR V
+    JOIN TGFCAB C ON C.NUNOTA = V.NUNOTA
+    WHERE C.STATUSNOTA <> 'C'
+    GROUP BY V.NUNOTAORIG, V.SEQUENCIAORIG
+) V_AGG ON V_AGG.NUNOTAORIG = ITE.NUNOTA
+       AND V_AGG.SEQUENCIAORIG = ITE.SEQUENCIA
+WHERE CAB.CODTIPOPER IN (1301, 1313)
+  AND CAB.STATUSNOTA <> 'C'
+  AND ITE.PENDENTE = 'S'               -- ✅ CRÍTICO: Exclui cancelados
+  AND (ITE.QTDNEG - NVL(V_AGG.TOTAL_ATENDIDO, 0)) > 0
+ORDER BY
+    CASE
+        WHEN CAB.DTPREVENT IS NULL THEN 1
+        WHEN CAB.DTPREVENT < SYSDATE THEN 0
+        WHEN CAB.DTPREVENT < SYSDATE + 7 THEN 2
+        ELSE 3
+    END,
+    MAR.DESCRICAO,
+    PRO.DESCRPROD
+```
+
+### 🔑 Aprendizados Chave
+
+| Campo | Significado | Quando Muda |
+|-------|-------------|-------------|
+| **NUNOTA** | ID único interno (PK) | Nunca (chave primária) |
+| **NUMNOTA** | Número do pedido visível | Número sequencial por tipo |
+| **CAB.PENDENTE** | Pedido tem pendências | Atualizado pelo Sankhya (cabeçalho) |
+| **ITE.PENDENTE** | Item está pendente | Usuário cancela → muda para 'N' |
+| **TGFVAR.QTDATENDIDA** | Quantidade entregue | A cada entrega parcial |
+
+**Regras Críticas:**
+1. ✅ Sempre usar `NUMNOTA` para mostrar número de pedido ao usuário
+2. ✅ Sempre usar `ITE.PENDENTE = 'S'` em queries de pendência de itens
+3. ✅ Agregar TGFVAR antes do JOIN (evita multiplicação)
+4. ✅ Usar `CODTIPOPER IN (1301, 1313)` para compras MMarra (mais preciso que `TIPMOV = 'O'`)
+
+### 📍 Próximos Passos
+
+1. ⏳ **Testar LLM** com conhecimento atualizado:
+   - Instalar modelo: `ollama pull qwen3:8b`
+   - Iniciar servidor: `python start.py` no projeto data-hub
+   - Testar queries: "Quantos pedidos da marca X em aberto?"
+
+2. ⏳ **Validar query final** com dados reais de produção
+
+3. ⏳ **Documentar em queries/compras/**:
+   - Salvar query final como `pendencias_completo_v2.sql`
 
 ---
 
