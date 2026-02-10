@@ -131,3 +131,4 @@ output/json/mapeamento_*.json
 node_modules/
 npm-debug.log
 yarn-error.log
+nul
