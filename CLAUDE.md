@@ -7,7 +7,8 @@
 ## 📋 REGRAS OBRIGATÓRIAS
 
 ### 1. Antes de Qualquer Coisa
-- **SEMPRE** leia `PROGRESSO_ATUAL.md` para entender onde paramos
+- **SEMPRE** leia `PROGRESSO_ATUAL.md` para entender onde paramos (estado atual + sessao mais recente)
+- **SEMPRE** consulte `PROGRESSO_HISTORICO.md` se precisar de contexto de sessoes anteriores (4-8)
 - **SEMPRE** consulte `docs/` antes de modificar código
 - **SEMPRE** pergunte qual tarefa o usuário quer continuar
 
@@ -39,6 +40,7 @@
 | Novo agente | `docs/agentes/[nome].md` |
 | Novo modelo ML | `docs/modelos/[nome].md` |
 | Qualquer mudança | `PROGRESSO_ATUAL.md` + `CHANGELOG.md` |
+| Sessao finalizada | Mover sessao antiga para `PROGRESSO_HISTORICO.md`, manter apenas a mais recente em `PROGRESSO_ATUAL.md` |
 
 ---
 

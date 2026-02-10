@@ -31,7 +31,11 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(nvidia-smi:*)",
+      "Bash(ollama pull:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(del \"C:\\\\Users\\\\italo.gomes\\\\OneDrive - MMarra Distribuidora Automotiva\\\\Documentos\\\\data-hub\\\\PROGRESSO.md\")"
     ]
   }
 }

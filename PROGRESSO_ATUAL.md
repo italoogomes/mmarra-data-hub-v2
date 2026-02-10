@@ -1,12 +1,13 @@
 # 📊 Estado Atual - MMarra Data Hub
 
-**Versão:** v2.1.0
-**Última Atualização:** 2026-02-09 (Sessão 5 - Continuação)
-**Histórico Completo:** Ver `CHANGELOG.md`
+**Versao:** v2.2.0
+**Ultima Atualizacao:** 2026-02-10 (Sessao 9)
+**Historico de Sessoes:** Ver `PROGRESSO_HISTORICO.md`
+**Changelog:** Ver `CHANGELOG.md`
 
 ---
 
-## ✅ O Que Está Funcionando
+## ✅ O Que Esta Funcionando
 
 ### Infraestrutura
 - [x] API Sankhya autenticando via OAuth2
@@ -16,45 +17,48 @@
 - [x] Arquivo `.env` configurado em `mcp_sankhya/.env`
 
 ### ETL (Agente Engenheiro)
-- [x] Extração: Vendas, Clientes, Produtos, Estoque, Vendedores
-- [x] Transformação: Limpeza e normalização
+- [x] Extracao: Vendas, Clientes, Produtos, Estoque, Vendedores
+- [x] Transformacao: Limpeza e normalizacao
 - [x] Carga: Upload para Data Lake em Parquet
 - [x] Script: `scripts/extracao/extrair_vendas_completo.py` (extrai 175k+ registros)
-- [x] Extractores com métodos de compatibilidade (`extrair()`, `salvar_parquet()`)
+- [x] Extractores com metodos de compatibilidade (`extrair()`, `salvar_parquet()`)
 
-### Análise (Agente Analista)
+### Analise (Agente Analista)
 - [x] KPIs de vendas, compras, estoque
-- [x] Geração de relatórios HTML
+- [x] Geracao de relatorios HTML
 - [x] Templates em `src/agents/analyst/reports/templates/`
 - [x] Dashboard Data Prep em `src/agents/analyst/dashboards/`
 
 ### Machine Learning (Agente Cientista)
-- [x] Prophet para previsão de demanda
+- [x] Prophet para previsao de demanda
 - [x] **10 modelos treinados** para TOP 10 produtos
 - [x] Modelos salvos em `src/agents/scientist/models/demand/`
 - [x] Script: `scripts/treinar_multiplos_modelos.py`
 
-### Detecção de Anomalias
-- [x] Isolation Forest com classificação de severidade
+### Deteccao de Anomalias
+- [x] Isolation Forest com classificacao de severidade
 - [x] Gerador de alertas em 3 formatos (text, markdown, html)
 - [x] Script: `scripts/detectar_anomalias.py`
-- [x] Relatórios salvos em `output/reports/`
+- [x] Relatorios salvos em `output/reports/`
 
 ### Dashboard Web
 - [x] Streamlit + Plotly
-- [x] KPIs principais (faturamento, pedidos, ticket médio)
-- [x] Gráficos: vendas por dia, top produtos, curva ABC
+- [x] KPIs principais (faturamento, pedidos, ticket medio)
+- [x] Graficos: vendas por dia, top produtos, curva ABC
 - [x] Script: `python scripts/iniciar_dashboard.py`
 
-### Chat IA (Agente LLM)
-- [x] Groq API (modelo: qwen/qwen3-32b)
-- [x] RAG com documentação indexada
+### Chat IA (Agente LLM - data-hub)
+- [x] Ollama qwen3:8b (com /no_think otimizado)
+- [x] RAG com documentacao indexada
 - [x] Tools: forecast_tool, kpi_tool
-- [x] Interface: `python scripts/chat_ia.py`
+- [x] Login Sankhya (OAuth + MobileLogin) funcionando
+- [x] Menu lateral com Chat IA e Relatorios
+- [x] Sistema RBAC (4 perfis: Vendedor, Comprador, Gerente, Admin)
+- [x] Tela de login com imagem de fundo e toggle de senha
 
 ---
 
-## 📁 Dados Disponíveis
+## 📁 Dados Disponiveis
 
 ### Local (src/data/raw/)
 | Dataset | Registros | Arquivo |
@@ -62,20 +66,20 @@
 | Vendas | 175.620 | `vendas/vendas.parquet` |
 
 ### Azure Data Lake
-| Dataset | Registros | Atualização |
+| Dataset | Registros | Atualizacao |
 |---------|-----------|-------------|
-| Vendas | ~340.000 | Diária |
-| Clientes | ~57.000 | Diária |
-| Produtos | ~393.000 | Diária |
-| Estoque ERP | ~36.000 | Diária |
-| Estoque WMS | ~45.000 | Diária |
+| Vendas | ~340.000 | Diaria |
+| Clientes | ~57.000 | Diaria |
+| Produtos | ~393.000 | Diaria |
+| Estoque ERP | ~36.000 | Diaria |
+| Estoque WMS | ~45.000 | Diaria |
 | Vendedores | ~111 | Semanal |
 
 ---
 
 ## 🤖 Modelos Prophet Treinados
 
-| Produto | Descrição | Previsão 30 dias | Tendência |
+| Produto | Descricao | Previsao 30 dias | Tendencia |
 |---------|-----------|------------------|-----------|
 | 263340 | DIPS INDICADOR PORCA CH32 | 469 un | baixa |
 | 306957 | PORCA RODA 22MM CH32 | 959 un | baixa |
@@ -85,7 +89,7 @@
 | 305277 | DIPS INDICADOR CH33 AMAR | 760 un | alta |
 | 166756 | TRAVA ROLETE PATIM | 614 un | baixa |
 | 32037 | INSERT TUBO 5/16 8MM | 387 un | alta |
-| 32043 | INSERT TUBO OD 12mm | 467 un | estável |
+| 32043 | INSERT TUBO OD 12mm | 467 un | estavel |
 | 48352 | FLEXIVEL FREIO 3/8 1000MM | 927 un | baixa |
 
 ---
@@ -93,43 +97,22 @@
 ## 📊 Tabelas Sankhya Mapeadas
 
 ### Core (100% mapeadas)
-| Tabela | Colunas | Descrição |
+| Tabela | Colunas | Descricao |
 |--------|---------|-----------|
-| TGFCAB | 422 | Cabeçalho de notas |
+| TGFCAB | 422 | Cabecalho de notas |
 | TGFITE | 231 | Itens das notas |
 | TGFPRO | 426 | Produtos |
 | TGFPAR | 299 | Parceiros |
 | TGFEST | 24 | Estoque ERP |
 
 ### WMS (100% mapeadas)
-| Tabela | Descrição |
+| Tabela | Descricao |
 |--------|-----------|
 | TGWREC | Recebimento |
-| TGWSEP | Separação |
+| TGWSEP | Separacao |
 | TGWEMPE | Empenho |
 | TGWEST | Estoque WMS |
-| VGWRECSITCAB | View situação |
-
----
-
-## 🎯 Próximos Passos
-
-### Prioridade Alta
-1. [x] ~~Expandir modelos Prophet para mais produtos~~
-2. [x] ~~Implementar detecção de anomalias~~
-3. [x] ~~Criar dashboard web~~
-4. [ ] Integrar Prophet e Anomalias com Agente LLM
-5. [ ] Agendamento automático de ETL
-
-### Prioridade Média
-6. [ ] Adicionar mais KPIs no Analista
-7. [ ] Integrar com Clara (cartão corporativo)
-8. [ ] Persistência de modelos de anomalia
-
-### Prioridade Baixa
-9. [ ] Interface WhatsApp
-10. [ ] Notificações automáticas
-11. [ ] API REST para consultas
+| VGWRECSITCAB | View situacao |
 
 ---
 
@@ -138,7 +121,7 @@
 | Problema | Workaround | Status |
 |----------|------------|--------|
 | Timeout em queries pesadas | Usar `ROWNUM < 1000` | Aberto |
-| Alguns campos AD_* não mapeados | Documentar conforme descobrir | Aberto |
+| Alguns campos AD_* nao mapeados | Documentar conforme descobrir | Aberto |
 | Bug filtro empresa no empenho | Ver `docs/bugs/` | Aberto |
 | Azure upload com erro 403 | Dados salvos local OK | Aberto |
 
@@ -161,447 +144,134 @@ python scripts/iniciar_dashboard.py
 # Acesse: http://localhost:8501
 
 # Chat com IA
-python scripts/chat_ia.py "Qual o faturamento do mês?"
+python scripts/chat_ia.py "Qual o faturamento do mes?"
 
 # MCP Server (VS Code)
 python -m mcp_sankhya.server
+
+# Data Hub LLM (projeto data-hub)
+cd data-hub && python start.py
+# Acesse: http://localhost:8080
 ```
 
 ---
 
-## 📚 Documentação Rápida
+## 📚 Documentacao Rapida
 
-| Tópico | Arquivo |
+| Topico | Arquivo |
 |--------|---------|
-| Instruções para IA | `CLAUDE.md` |
+| Instrucoes para IA | `CLAUDE.md` |
+| Historico sessoes | `PROGRESSO_HISTORICO.md` |
 | API Sankhya | `docs/api/sankhya.md` |
 | Mapeamento tabelas | `docs/de-para/sankhya/` |
 | Status WMS | `docs/de-para/sankhya/wms.md` |
-| Investigações | `docs/investigacoes/README.md` |
+| Investigacoes | `docs/investigacoes/README.md` |
 | Bugs conhecidos | `docs/bugs/` |
 
 ---
 
-## 📝 Sessão 4 (2026-02-09) - Query Pendência Compras + Transferência data-hub
+## 📋 Sessao 9 (2026-02-10): Login Sankhya Corrigido + RBAC + Melhorias Visuais
 
 ### 🎯 Objetivo
-Criar relatório de pendência de compras e transferir conhecimento para o projeto `data-hub` (LLM Ollama).
+Corrigir login com credenciais reais do Sankhya, implementar sistema de permissoes RBAC e melhorias visuais na tela de login.
 
-### 🔍 Descobertas Críticas
+### ✅ Correcao Login Sankhya (4 bugs corrigidos)
 
-#### 1. Campos Corretos vs Documentação
+**Bug 1: serviceName duplicado**
+- Body JSON continha `serviceName` E URL tinha `serviceName` como param
+- Solucao: Removido `serviceName` do body JSON
 
-| Documentado (❌) | Real (✅) | Tabela | Como Descobrir |
-|---|---|---|---|
-| DTENTREGA | **DTPREVENT** | TGFCAB | `SELECT COLUMN_NAME FROM ALL_TAB_COLUMNS WHERE TABLE_NAME='TGFCAB' AND COLUMN_NAME LIKE '%PREV%'` |
-| CODCOMPRADOR | **CODUSUCOMPRADOR** | TGFCAB | `SELECT COLUMN_NAME FROM ALL_TAB_COLUMNS WHERE TABLE_NAME='TGFCAB' AND COLUMN_NAME LIKE '%COMPR%'` |
-| MARCA (texto) | **CODMARCA** → TGFMAR.CODIGO | TGFPRO | FK para TGFMAR |
+**Bug 2: Gateway exige OAuth**
+- Erro GTW2510: "O Header Authorization e obrigatorio"
+- Solucao: Obter token OAuth (client_id + client_secret) ANTES de chamar MobileLogin
 
-#### 2. TGFMAR - Estrutura Completa
+**Bug 3: outputType=json faltando**
+- Sankhya retornava XML em vez de JSON
+- Solucao: Adicionado `outputType=json` nos params da URL
 
-```sql
-SELECT COLUMN_NAME FROM ALL_TAB_COLUMNS
-WHERE TABLE_NAME = 'TGFMAR'
-ORDER BY COLUMN_NAME
+**Bug 4: URL incorreta**
+- Usava `https://api.sankhya.com.br/mge/service.sbr` (sem gateway)
+- Solucao: Corrigido para `https://api.sankhya.com.br/gateway/v1/mge/service.sbr`
+
+**Fluxo final correto:**
+```
+1. POST /authenticate (OAuth client_credentials) → Bearer token
+2. POST /gateway/v1/mge/service.sbr?serviceName=MobileLoginSP.login&outputType=json
+   Headers: Authorization: Bearer {oauth_token}
+   Body: { requestBody: { NOMUSU, INTERNO, KEEPCONNECTED } }
 ```
 
-**Colunas:**
-- `CODIGO` (PK)
-- `DESCRICAO` (nome da marca, ex: DONALDSON)
-- `AD_CODVEND` (FK → TGFVEN - comprador responsável)
-- `AD_CONSIDLISTAFORN` (S/N)
-- `AD_IDEXTERNO` (ID integração)
-
-**Caminho comprador:** `TGFPRO.CODMARCA → TGFMAR.CODIGO → TGFMAR.AD_CODVEND → TGFVEN.CODVEND`
-
-#### 3. CODTIPOPERs Específicos MMarra
-
-- **1301** - Compra Casada (Empenho - vinculado a venda)
-- **1313** - Entrega Futura (compra programada)
-
-**Uso:** `CODTIPOPER IN (1301, 1313)` > `TIPMOV='O'` (mais preciso)
-
-#### 4. TGFVAR - Agregação Obrigatória
-
-**Problema:** Query retornava 16 linhas para pedido com 13 itens (atendimentos parciais multiplicavam).
-
-**Solução:** Agregar ANTES do JOIN:
-
-```sql
-LEFT JOIN (
-    SELECT V.NUNOTAORIG, V.SEQUENCIAORIG,
-           SUM(V.QTDATENDIDA) AS TOTAL_ATENDIDO
-    FROM TGFVAR V
-    JOIN TGFCAB C ON C.NUNOTA = V.NUNOTA
-    WHERE C.STATUSNOTA <> 'C'
-    GROUP BY V.NUNOTAORIG, V.SEQUENCIAORIG
-) V_AGG ...
-```
-
-### 📋 Query Final - Pendência de Compras
-
-Arquivo: `queries/compras/pendencias_completo.sql` (a criar)
-
-Características:
-- Nível ITEM (porque filtra marca)
-- TGFVAR agregado (pendência real)
-- Comprador via TGFMAR.AD_CODVEND
-- Valores corretos (ITE.VLRTOT)
-- CODTIPOPER IN (1301, 1313)
-- Ordenação por STATUS_ENTREGA (atrasados primeiro)
-
-### 🔄 Transferência para data-hub
-
-**3 arquivos atualizados no projeto LLM:**
-
-1. `knowledge/glossario/sinonimos.md` (+15 linhas)
-   - Seção "TOPs de Compra MMarra (CODTIPOPER)"
-   - Regra: quando usar CODTIPOPER vs TIPMOV
-
-2. `knowledge/sankhya/exemplos_sql.md` (+32 linhas)
-   - Exemplo 22: Query completa pendência
-   - Responde 5 perguntas simultaneamente
-
-3. `knowledge/sankhya/tabelas/TGFCAB.md`
-   - ✅ Verificado: CODUSUCOMPRADOR já documentado
-
-**Sessão 24 documentada** no `data-hub/PROGRESSO.md`
-
-### ✅ Próximos Passos
-
-1. [ ] Atualizar `docs/de-para/sankhya/compras.md` com CODUSUCOMPRADOR
-2. [ ] Criar `docs/de-para/sankhya/tgfmar.md`
-3. [ ] Salvar query em `queries/compras/pendencias_completo.sql`
-4. [ ] Testar LLM data-hub com melhorias (qwen3:8b)
-5. [ ] Transferir futuras descobertas entre projetos
-
-### 📝 Aprendizados
-
-✅ Agregar TGFVAR sempre (evita multiplicação)
-✅ ALL_TAB_COLUMNS quando doc estiver errada
-✅ Projetos sincronizados (mmarra-data-hub-v2 descobre → data-hub treina)
-✅ CODTIPOPER > TIPMOV (mais específico)
-✅ Comprador via marca (TGFPRO → TGFMAR → TGFVEN)
-
----
-
-## 📋 Sessão 5 (2026-02-09): Servidor Data Hub, Logo e Descoberta ITE.PENDENTE
-
-### 🎯 Objetivo
-- Acessar servidor data-hub (LLM) para testar conhecimento transferido
-- Ajustar logo com fundo transparente
-- Revisar queries de pendência e identificar problema com itens cancelados
-
-### 🔍 Descobertas Críticas
-
-#### 1. Servidor Data Hub na Porta Errada
-**Problema:** Usuário tentou acessar `localhost:8080` mas servidor configurado para porta 8000.
-
-**Solução:** Alterado `start.py` de `PORT = 8000` para `PORT = 8080`.
-
-#### 2. Logo com Fundo Preto
-**Problema:** Logo PNG com fundo preto no base64 do HTML.
-
-**Solução:**
-- Criado pasta `src/api/static/images/`
-- Logo salva como `logo.png` (fundo transparente)
-- HTML atualizado para `src="imagens/logo.png"` (3 locais)
-- CSS ajustado: `background: white`, `border-radius`, `padding`
-
-#### 3. NUNOTA vs NUMNOTA (Campo Pedido)
-**Problema:** Query mostrando `NUNOTA` (ID interno 1185467) ao invés de `NUMNOTA` (número visível 168).
-
-**Correção:**
-```sql
--- ❌ ERRADO:
-CAB.NUNOTA AS PEDIDO
-
--- ✅ CORRETO:
-CAB.NUMNOTA AS PEDIDO
-```
-
-**Diferença:**
-- `NUNOTA` = Chave primária (ID único interno)
-- `NUMNOTA` = Número do pedido (visível ao usuário)
-
-#### 4. 🔥 Descoberta CRÍTICA: ITE.PENDENTE = 'S'
-
-**Problema Identificado:**
-Usuário: "Quando eu corto um item do pedido e marco como não pendente, ele continua aparecendo na consulta. Ele nunca vai sumir porque nunca vai ser entregue!"
-
-**Causa Raiz:**
-Query calculava `QTD_PENDENTE = QTDNEG - TOTAL_ATENDIDO`. Se item cancelado/cortado:
-- Nunca será entregue (`TOTAL_ATENDIDO` sempre 0)
-- `QTD_PENDENTE` sempre > 0
-- Aparece eternamente na consulta ❌
-
-**Solução:**
-```sql
-WHERE ITE.PENDENTE = 'S'  -- CRÍTICO!
-```
-
-**Comportamento:**
-- Quando usuário cancela/corta item → Sankhya marca `ITE.PENDENTE = 'N'`
-- Query filtra por `ITE.PENDENTE = 'S'` → Itens cancelados não aparecem ✅
-
-**Diferença entre campos:**
-- `CAB.PENDENTE` = Pedido tem itens pendentes (nível cabeçalho)
-- `ITE.PENDENTE` = Item específico está pendente (nível item)
-
-### 📝 Arquivos Atualizados
-
-#### mmarra-data-hub-v2 (este projeto)
-- `PROGRESSO_ATUAL.md` - Documentação desta sessão
-
-#### data-hub (projeto LLM)
-- `start.py` - Porta 8080
-- `src/api/static/index.html` - Logo externa + CSS
-- `src/api/static/images/logo.png` - Logo nova (criada pelo usuário)
-- `knowledge/sankhya/exemplos_sql.md` - 3 exemplos atualizados + nova regra
-
-**Exemplos SQL Corrigidos:**
-1. Exemplo 19 - Previsão entrega por marca (`+ ITE.PENDENTE = 'S'`)
-2. Exemplo 20 - Itens pendentes por pedido (`+ I.PENDENTE = 'S'`)
-3. Exemplo 22 - Pendentes por marca MMarra (`+ ITE.PENDENTE = 'S'`)
-
-**Nova Regra Crítica Adicionada:**
-Seção "ITE.PENDENTE para itens cancelados/cortados" explicando:
-- Quando usar
-- Por que usar
-- O que acontece se não usar
-
-### 🎯 Query Final de Pendência (Completa e Corrigida)
-
-```sql
-SELECT
-    CAB.NUNOTA AS NUNOTA_PEDIDO,
-    CAB.NUMNOTA AS PEDIDO,             -- ✅ Corrigido (era NUNOTA)
-    CAB.DTNEG AS DT_PEDIDO,
-    CAB.DTPREVENT AS PREVISAO_ENTREGA,
-    CAB.APROVADO AS CONFIRMADO,
-    PAR.NOMEPARC AS FORNECEDOR,
-    VEN.APELIDO AS COMPRADOR,
-    PRO.CODPROD,
-    PRO.REFERENCIA,
-    PRO.DESCRPROD AS PRODUTO,
-    MAR.DESCRICAO AS MARCA,
-    ITE.CODVOL AS UNIDADE,
-    ITE.QTDNEG AS QTD_PEDIDA,
-    NVL(V_AGG.TOTAL_ATENDIDO, 0) AS QTD_ATENDIDA,
-    (ITE.QTDNEG - NVL(V_AGG.TOTAL_ATENDIDO, 0)) AS QTD_PENDENTE,
-    ITE.VLRUNIT AS VLR_UNITARIO,
-    ITE.VLRTOT AS VLR_TOTAL_PEDIDO,
-    ROUND((ITE.QTDNEG - NVL(V_AGG.TOTAL_ATENDIDO, 0)) * ITE.VLRUNIT, 2) AS VLR_TOTAL_PENDENTE,
-    TRUNC(SYSDATE) - TRUNC(CAB.DTNEG) AS DIAS_ABERTO,
-    CASE
-        WHEN CAB.DTPREVENT IS NULL THEN 'SEM PREVISÃO'
-        WHEN CAB.DTPREVENT < SYSDATE THEN 'ATRASADO'
-        WHEN CAB.DTPREVENT < SYSDATE + 7 THEN 'PRÓXIMO'
-        ELSE 'NO PRAZO'
-    END AS STATUS_ENTREGA
-FROM TGFITE ITE
-JOIN TGFCAB CAB ON CAB.NUNOTA = ITE.NUNOTA
-JOIN TGFPRO PRO ON PRO.CODPROD = ITE.CODPROD
-LEFT JOIN TGFPAR PAR ON PAR.CODPARC = CAB.CODPARC
-LEFT JOIN TGFMAR MAR ON MAR.CODIGO = PRO.CODMARCA
-LEFT JOIN TGFVEN VEN ON VEN.CODVEND = MAR.AD_CODVEND
-LEFT JOIN (
-    SELECT V.NUNOTAORIG, V.SEQUENCIAORIG,
-           SUM(V.QTDATENDIDA) AS TOTAL_ATENDIDO
-    FROM TGFVAR V
-    JOIN TGFCAB C ON C.NUNOTA = V.NUNOTA
-    WHERE C.STATUSNOTA <> 'C'
-    GROUP BY V.NUNOTAORIG, V.SEQUENCIAORIG
-) V_AGG ON V_AGG.NUNOTAORIG = ITE.NUNOTA
-       AND V_AGG.SEQUENCIAORIG = ITE.SEQUENCIA
-WHERE CAB.CODTIPOPER IN (1301, 1313)
-  AND CAB.STATUSNOTA <> 'C'
-  AND ITE.PENDENTE = 'S'               -- ✅ CRÍTICO: Exclui cancelados
-  AND (ITE.QTDNEG - NVL(V_AGG.TOTAL_ATENDIDO, 0)) > 0
-ORDER BY
-    CASE
-        WHEN CAB.DTPREVENT IS NULL THEN 1
-        WHEN CAB.DTPREVENT < SYSDATE THEN 0
-        WHEN CAB.DTPREVENT < SYSDATE + 7 THEN 2
-        ELSE 3
-    END,
-    MAR.DESCRICAO,
-    PRO.DESCRPROD
-```
-
-### 🔑 Aprendizados Chave
-
-| Campo | Significado | Quando Muda |
-|-------|-------------|-------------|
-| **NUNOTA** | ID único interno (PK) | Nunca (chave primária) |
-| **NUMNOTA** | Número do pedido visível | Número sequencial por tipo |
-| **CAB.PENDENTE** | Pedido tem pendências | Atualizado pelo Sankhya (cabeçalho) |
-| **ITE.PENDENTE** | Item está pendente | Usuário cancela → muda para 'N' |
-| **TGFVAR.QTDATENDIDA** | Quantidade entregue | A cada entrega parcial |
-
-**Regras Críticas:**
-1. ✅ Sempre usar `NUMNOTA` para mostrar número de pedido ao usuário
-2. ✅ Sempre usar `ITE.PENDENTE = 'S'` em queries de pendência de itens
-3. ✅ Agregar TGFVAR antes do JOIN (evita multiplicação)
-4. ✅ Usar `CODTIPOPER IN (1301, 1313)` para compras MMarra (mais preciso que `TIPMOV = 'O'`)
-
-### 📍 Próximos Passos
-
-1. ⏳ **Testar LLM** com conhecimento atualizado:
-   - Instalar modelo: `ollama pull qwen3:8b`
-   - Iniciar servidor: `python start.py` no projeto data-hub
-   - Testar queries: "Quantos pedidos da marca X em aberto?"
-
-2. ⏳ **Validar query final** com dados reais de produção
-
-3. ⏳ **Documentar em queries/compras/**:
-   - Salvar query final como `pendencias_completo_v2.sql`
-
----
-
-## 📋 Sessão 5 - Continuação (2026-02-09): Fix Formatação de Relatórios
-
-### 🎯 Objetivo
-Corrigir problema onde relatórios SQL estavam sendo exibidos como texto contínuo (uma linha só) ao invés de tabela formatada.
-
-### 🐛 Problema Identificado
-
-**Sintoma:** Usuário reportou: "quando eu peço um relatorio ao inves dela me mandar o resultado em um planilha, ele monstra o resultado dos pedidos e dos itens tudo em uma linha so kkk"
-
-**Análise:**
-1. Python (`agent.py` linhas 688-713) **já estava criando tabela markdown perfeita**:
-   ```markdown
-   | PEDIDO | DATA | FORNECEDOR | VALOR |
-   |--------|------|------------|-------|
-   | 123456 | 01/02 | Empresa X | R$ 1.500 |
-   ```
-
-2. Mas o LLM (qwen3:8b) recebia essa tabela e ao tentar "reformatar", **destruía a estrutura**, juntando tudo em uma linha.
-
-### ✅ Solução Implementada
-
-#### 1. FORMATTER_PROMPT Simplificado (`agent.py` ~linha 115)
-
-**ANTES:**
-```python
-4. Monte uma tabela Markdown com os dados, usando nomes amigaveis nas colunas...
-```
-→ LLM tentava REESCREVER a tabela (problema!)
-
-**DEPOIS:**
-```python
-2. COPIE A TABELA MARKDOWN EXATAMENTE COMO ESTA ACIMA - NAO modifique, NAO reescreva, NAO mude a formatacao.
-3. IMPORTANTE: Mantenha TODAS as quebras de linha (\n) da tabela. Cada linha deve estar em uma linha separada.
-```
-→ LLM apenas COPIA a tabela (solução!)
-
-#### 2. System Prompt Reforçado (`agent.py` ~linha 729)
-
-**ANTES:**
-```python
-"Voce e um assistente de negocios. Sua UNICA tarefa e formatar os dados..."
-```
-
-**DEPOIS:**
-```python
-"Voce e um assistente de negocios. Sua UNICA tarefa e adicionar um resumo e insights aos dados.
-CRITICO: Preserve a tabela Markdown EXATAMENTE como fornecida, mantendo TODAS as quebras de linha (\\n)."
-```
+### ✅ Sistema RBAC (Role-Based Access Control)
+
+**4 perfis implementados:**
+
+| Perfil | Identificacao | Ve o que | Filtro SQL |
+|--------|--------------|----------|------------|
+| Vendedor | TGFVEN.TIPVEND = 'V' | So vendas dele | WHERE CODVEND = X |
+| Comprador | TGFVEN.TIPVEND = 'C' | So compras dele | WHERE CODVEND = X |
+| Gerente | Tem subordinados (CODGER) | Dados da equipe | WHERE CODVEND IN (...) |
+| Admin | Lista fixa no .env | Tudo | Sem filtro |
+
+**Backend (src/api/app.py):**
+- `fetch_user_profile(username)` - Busca CODVEND, TIPVEND, CODGER na TGFVEN via DbExplorerSP
+- `determine_role(username, profile)` - Logica: ADMIN_USERS → admin, tem subordinados → gerente, TIPVEND → vendedor/comprador
+- `fetch_team_codvends(codvend)` - Lista CODVENDs da equipe do gerente
+- `get_current_user()` - Retorna sessao completa (dict com role, codvend, etc)
+- `/api/login` retorna `role` e `modules`
+- `/api/me` retorna `role` e `modules`
+- `/api/chat` passa `user_context` para o agente LLM
+
+**Frontend (index.html):**
+- localStorage guarda `datahub_role` e `datahub_modules`
+- Sidebar mostra cargo (Vendedor/Comprador/Gerente/Administrador)
+- Report cards com `data-module="compras"` ou `data-module="vendas"` filtrados por perfil
+
+**LLM (src/llm/agent.py):**
+- Camada 1 (Prompt): `_build_rbac_filter()` injeta instrucao obrigatoria no prompt SQL
+- Camada 2 (Safety net): `_enforce_rbac_filter()` valida e envolve SQL com filtro CODVEND
+- Vendedor tentando ver compras → LLM bloqueia
+- Comprador tentando ver vendas → LLM bloqueia
+
+**Configuracao (.env):**
+- `ADMIN_USERS=ITALO` (lista de APELIDOs administradores)
+
+### ✅ Melhorias Visuais (Tela de Login)
+
+1. **Imagem de fundo** - `fundo01.jpg` na tela de login (cover, centralizado)
+2. **Botao ver senha** - Icone SVG (olho aberto/fechado) profissional
+3. **Cores ajustadas** - Fundo de preto (#0a0a0b) para cinza escuro (#1e1e22)
+4. **Titulo** - "Centro de dados" em vez de "Data Hub"
 
 ### 📝 Arquivos Modificados
 
 **data-hub (projeto LLM):**
-- `src/llm/agent.py`:
-  - FORMATTER_PROMPT (linha 115-141): Simplificado para preservar formatação
-  - System message (linha 729): Reforçado com instrução CRITICA sobre quebras de linha
-
-### 🔄 Fluxo Corrigido
-
-1. **Python cria tabela markdown perfeita** (linhas 688-713)
-2. **LLM adiciona apenas:**
-   - Resumo antes (1-2 linhas)
-   - Tabela COPIADA (sem modificar)
-   - Insights depois
-3. **Frontend renderiza** via `renderMarkdown()` (index.html linha 995)
-4. **Usuário vê tabela formatada** ✅
-
-### 🔑 Lição Aprendida
-
-**❌ Problema:** Dar muita "liberdade criativa" ao LLM para formatar dados estruturados pode quebrar a formatação.
-
-**✅ Solução:** Instrução **IMPERATIVA** e **CLARA**: "COPIE EXATAMENTE" + "NAO modifique" + "Mantenha quebras de linha".
-
-**Aplicável em:**
-- Tabelas markdown
-- Código formatado
-- JSON/YAML
-- Qualquer dado estruturado que precise preservar formatação exata
-
-### 📍 Status
-
-**Status:** ✅ CORRIGIDO - Aguardando teste do usuário
-
-**Teste:**
-1. Reiniciar servidor: `python start.py` (projeto data-hub)
-2. Pedir relatório: "Quantos pedidos de compra pendentes da marca X?"
-3. Verificar tabela formatada corretamente
+- `src/api/app.py` - OAuth + MobileLogin corrigido + RBAC completo
+- `src/llm/agent.py` - user_context + _build_rbac_filter + _enforce_rbac_filter
+- `src/api/static/index.html` - Fundo, botao senha, cores, RBAC frontend
+- `.env` - ADMIN_USERS=ITALO
 
 ---
 
-## 🚀 ANÁLISE DE READINESS & PLANO BETA
+## 🎯 Proximos Passos
 
-### Avaliação de Prontidão (Sessão 25)
+### Prioridade Alta
+1. [ ] **Implementar relatorio Pendencia de Compras** (primeiro relatorio real)
+2. [ ] Testar RBAC com vendedor e comprador reais
+3. [ ] Testar LLM na maquina pessoal (GPU)
 
-Após completar as correções acima, foi solicitada análise se o data-hub LLM está pronto para lançamento beta ao time de compras.
+### Prioridade Media
+4. [ ] Sessao de testes com usuario real do time de compras
+5. [ ] Criar avisos.md (limitacoes conhecidas)
+6. [ ] Atingir 90/100 no checklist beta
+7. [ ] Integrar Prophet e Anomalias com Agente LLM
 
-**Resultado da Análise:** **74/100 pontos - NÃO PRONTO**
-
-**Gaps Críticos Identificados:**
-1. ❌ Falta exemplo SQL para pedidos **atrasados** (DTPREVENT < SYSDATE)
-2. ❌ Falta exemplo SQL para **histórico de compras por fornecedor**
-3. ❌ Falta exemplo SQL para **análise de performance** de fornecedor (% atrasos)
-4. ⚠️ Nenhum teste com usuários reais do time de compras ainda
-
-**Recomendação:** **AGUARDAR 1-2 semanas** para adicionar conhecimento faltante
-
-**Tempo estimado:** 8-12 horas de trabalho adicional
-
-**Plano completo:** Ver [data-hub/PLANO_BETA.md](C:\Users\italo.gomes\OneDrive - MMarra Distribuidora Automotiva\Documentos\data-hub\PLANO_BETA.md)
-
-**Meta:** Atingir 90/100 pontos antes do lançamento beta
-
-### Próximos Passos para Beta
-
-1. **Semana 1 (4-6h):** Desenvolver 3 exemplos SQL faltantes
-   - Exemplo 23: Pedidos atrasados
-   - Exemplo 24: Histórico fornecedor
-   - Exemplo 25: Performance fornecedor
-
-2. **Semana 2 (4-6h):** Testes e ajustes
-   - Sessão de testes com usuário real
-   - Criar arquivo avisos.md (limitações conhecidas)
-   - Validar acurácia 80%+
-
-3. **Lançamento Beta:** Após checklist completo
+### Prioridade Baixa
+8. [ ] Agendamento automatico de ETL
+9. [ ] Interface WhatsApp
+10. [ ] Notificacoes automaticas
 
 ---
 
-## 🔄 Mudanças na v2.1 (2026-02-05)
-
-1. **Modelos Prophet expandidos** - 10 produtos treinados
-2. **Detecção de anomalias** - Isolation Forest funcionando
-3. **Dashboard Streamlit** - Visualização de KPIs e gráficos
-4. **Scripts novos:**
-   - `scripts/extracao/extrair_vendas_completo.py`
-   - `scripts/treinar_multiplos_modelos.py`
-   - `scripts/detectar_anomalias.py`
-   - `scripts/iniciar_dashboard.py`
-5. **Correções:**
-   - Formato de data Sankhya (TO_CHAR)
-   - Imports de extractors
-   - Métodos de compatibilidade no BaseExtractor
-
----
-
-*Este arquivo é atualizado a cada sessão de trabalho.*
-*Para histórico detalhado, consulte `CHANGELOG.md`.*
+*Este arquivo contem apenas o estado atual e a sessao mais recente.*
+*Para historico de sessoes anteriores (4-8), ver `PROGRESSO_HISTORICO.md`.*
+*Para changelog completo, ver `CHANGELOG.md`.*

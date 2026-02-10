@@ -13,6 +13,55 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - Integração WhatsApp
 - API REST para consultas externas
 - Notificações automáticas
+- Relatório Pendência de Compras (próxima sessão)
+
+---
+
+## [2.2.0] - 2026-02-10 🔐 LOGIN SANKHYA + RBAC
+
+### 🎉 Marco Principal
+**Login com Sankhya corrigido + Sistema de Permissões RBAC implementado**
+
+### ✅ Adicionado
+
+#### 1. Sistema RBAC (Role-Based Access Control)
+- 4 perfis: Vendedor, Comprador, Gerente, Admin
+- Perfil detectado automaticamente via TGFVEN (APELIDO, TIPVEND, CODGER)
+- `ADMIN_USERS` configurável no `.env`
+- Gerente vê dados da equipe (subordinados via CODGER)
+- Vendedor só vê vendas dele, comprador só vê compras dele
+
+#### 2. Filtros RBAC na LLM
+- Camada 1 (Prompt): Instrução obrigatória de segurança no prompt SQL
+- Camada 2 (Safety net): Validação pós-SQL com injeção de WHERE CODVEND
+- Bloqueio: vendedor não consulta compras, comprador não consulta vendas
+
+#### 3. Frontend com Perfil
+- Sidebar mostra cargo do usuário (Vendedor/Comprador/Gerente/Admin)
+- Report cards filtrados por módulo (compras/vendas)
+- localStorage persiste role entre refreshes
+
+#### 4. Melhorias Visuais
+- Imagem de fundo na tela de login (`fundo01.jpg`)
+- Botão ver/ocultar senha (ícone SVG)
+- Cores ajustadas: cinza escuro (#1e1e22) em vez de preto
+
+### 🔧 Corrigido
+
+#### Login Sankhya (4 bugs)
+1. `serviceName` duplicado no body + URL
+2. Gateway exige OAuth antes do MobileLogin (GTW2510)
+3. `outputType=json` faltando (retornava XML)
+4. URL sem `/gateway/v1/` no path
+
+### 📊 Arquivos Modificados (data-hub)
+
+| Arquivo | Mudanças |
+|---------|----------|
+| `src/api/app.py` | OAuth + RBAC (fetch_user_profile, determine_role, etc.) |
+| `src/llm/agent.py` | user_context, _build_rbac_filter, _enforce_rbac_filter |
+| `src/api/static/index.html` | Fundo, senha, cores, RBAC frontend |
+| `.env` | ADMIN_USERS=ITALO |
 
 ---
 
@@ -770,4 +819,4 @@ start relatorio_divergencias_v3.html
 
 ---
 
-**Última atualização:** 2026-02-05
+**Última atualização:** 2026-02-10
